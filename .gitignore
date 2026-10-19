@@ -1,0 +1,11 @@
+node_modules
+dist
+*.tsbuildinfo
+
+# AI tooling / local skill folders (not part of the website)
+.taste-skill
+.agents
+.claude
+.codex
+.impeccable
+skills-lock.json

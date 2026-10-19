@@ -23,7 +23,7 @@ export function ProductImage({ product: p, alt, sizes, priority, className, styl
   }
   return (
     <span className={`noimage ${className ?? ''}`} role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>
-      {withMark && <img className="noimage__mark" src="/images/atyab_logo-384.webp" width={384} height={384} alt="" />}
+      {withMark && <img className="noimage__mark" src={`${import.meta.env.BASE_URL}images/atyab_logo-384.webp`} width={384} height={384} alt="" />}
       <span className="noimage__ar" lang="ar" dir="rtl">{p.nameAr}</span>
       <span className="noimage__note">Photograph to come</span>
     </span>

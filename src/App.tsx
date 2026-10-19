@@ -27,7 +27,7 @@ function RouteChange() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <CartProvider>
         <WishlistProvider>
           <RouteChange />

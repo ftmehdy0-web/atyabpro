@@ -17,8 +17,8 @@ export function imageSource(key: string): ImageSource {
   const labels = Object.keys(entry.sizes);
   const largest = labels[labels.length - 1];
   return {
-    src: `/images/${key}-${largest}.webp`,
-    srcSet: labels.map((l) => `/images/${key}-${l}.webp ${entry.sizes[l]}w`).join(', '),
+    src: `${import.meta.env.BASE_URL}images/${key}-${largest}.webp`,
+    srcSet: labels.map((l) => `${import.meta.env.BASE_URL}images/${key}-${l}.webp ${entry.sizes[l]}w`).join(', '),
     width: entry.w,
     height: entry.h,
   };

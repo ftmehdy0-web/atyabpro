@@ -81,7 +81,7 @@ export function Name() {
         </figure>
         <div className="name__side" data-enter>
           <div className="name__mark">
-            <img src="/images/atyab_logo-384.webp" width={384} height={384} alt="The Atyab mark: Arabic calligraphy shaped as a perfume bottle" loading="lazy" decoding="async" />
+            <img src={`${import.meta.env.BASE_URL}images/atyab_logo-384.webp`} width={384} height={384} alt="The Atyab mark: Arabic calligraphy shaped as a perfume bottle" loading="lazy" decoding="async" />
           </div>
           <dl className="name__facts">
             {facts.map((f) => (

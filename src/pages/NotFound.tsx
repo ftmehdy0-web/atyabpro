@@ -1,17 +1,17 @@
 import { Link } from 'react-router';
 import { Suggestions } from '../components/Suggestions';
+import { useLang } from '../i18n/lang';
 import { useSeo } from '../lib/useSeo';
 
 export default function NotFound() {
-  useSeo('Page not found', 'This page does not exist at Atyab Perfumes.');
+  const { t } = useLang();
+  const m = t.missing;
+  useSeo(t.seo.missing, t.seo.missingDesc);
   return (
     <div className="missing">
-      <h1 className="page-title">This page is not here</h1>
-      <p>
-        The link may be old, or the piece may have left the house. Go back to the{' '}
-        <Link to="/" className="link-plain">home page</Link>, or start with these.
-      </p>
-      <Suggestions title="Pieces from the house" />
+      <h1 className="page-title">{m.title}</h1>
+      <p>{m.body(<Link to="/" className="link-plain">{m.homeLink}</Link>)}</p>
+      <Suggestions title={m.fromHouse} />
     </div>
   );
 }

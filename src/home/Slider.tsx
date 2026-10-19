@@ -2,60 +2,30 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { Icon } from '../components/Icon';
 import { Img } from '../components/Img';
+import { useLang } from '../i18n/lang';
 
-interface Slide {
-  image: string;
-  alt: string;
-  /** object-position, so the bottles stay in frame on tall phone screens. */
-  focus: string;
-  eyebrow: string;
-  title: string;
-  to: string;
-  cta: string;
-}
-
-const slides: Slide[] = [
-  {
-    image: 'hero_aytyab',
-    alt: 'An Atyab perfume bottle in white and gold on marble, with white silk behind it',
-    focus: '50% 50%',
-    eyebrow: 'The house signature',
-    title: 'Atyab',
-    to: '/shop/perfumes',
-    cta: 'Discover the perfumes',
-  },
-  {
-    image: 'hero_slide_1',
-    alt: 'Tiger Oud and Nader bottles with their boxes on black marble, smoke rising under carved arches',
-    focus: '62% 50%',
-    eyebrow: 'Wild oud, red saffron, smoked amber',
-    title: 'Tiger Oud & Nader',
-    to: '/product/tiger-oud',
-    cta: 'Discover Tiger Oud',
-  },
-  {
-    image: 'hero_slide_2',
-    alt: 'Moon Flower and Mashair bottles on a marble table under a crescent moon',
-    focus: '46% 50%',
-    eyebrow: 'Night flowers and rose',
-    title: 'Moon Flower',
-    to: '/product/moon-flower',
-    cta: 'Discover Moon Flower',
-  },
+/** Pictures and links; the words come from the language strings, in the same order. */
+const slides = [
+  // object-position keeps the bottles in frame on tall phone screens.
+  { image: 'hero_aytyab', focus: '50% 50%', to: '/shop/perfumes' },
+  { image: 'hero_slide_1', focus: '62% 50%', to: '/product/tiger-oud' },
+  { image: 'hero_slide_2', focus: '46% 50%', to: '/product/moon-flower' },
 ];
 
 const DURATION = 6500;
 
 /** Full-screen photographs of the house, changing on their own; arrows and dots to choose one. */
 export function Slider() {
+  const { t } = useLang();
+  const words = t.slider.slides;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const go = useCallback((n: number) => setIndex((n + slides.length) % slides.length), []);
 
   useEffect(() => {
     if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = window.setTimeout(() => go(index + 1), DURATION);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => go(index + 1), DURATION);
+    return () => window.clearTimeout(timer);
   }, [index, paused, go]);
 
   useEffect(() => {
@@ -68,7 +38,7 @@ export function Slider() {
     <section
       className={`slider${paused ? ' is-paused' : ''}`}
       aria-roledescription="carousel"
-      aria-label="Featured"
+      aria-label={t.slider.label}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -76,27 +46,28 @@ export function Slider() {
     >
       {slides.map((s, i) => {
         const active = i === index;
+        const w = words[i];
         return (
           <div
             key={s.image}
             className={`slide${active ? ' is-active' : ''}`}
             role="group"
             aria-roledescription="slide"
-            aria-label={`${i + 1} of ${slides.length}`}
+            aria-label={t.slider.of(i + 1, slides.length)}
             aria-hidden={!active}
           >
-            <Img name={s.image} alt={s.alt} sizes="100vw" priority={i === 0} className="slide__pic" style={{ objectPosition: s.focus }} />
+            <Img name={s.image} alt={w.alt} sizes="100vw" priority={i === 0} className="slide__pic" style={{ objectPosition: s.focus }} />
             <div className="slide__text">
-              <p className="slide__eyebrow">{s.eyebrow}</p>
-              {i === 0 ? <h1 className="slide__title">{s.title}</h1> : <h2 className="slide__title">{s.title}</h2>}
-              <Link to={s.to} className="slide__cta" tabIndex={active ? 0 : -1}>{s.cta}</Link>
+              <p className="slide__eyebrow">{w.eyebrow}</p>
+              {i === 0 ? <h1 className="slide__title">{w.title}</h1> : <h2 className="slide__title">{w.title}</h2>}
+              <Link to={s.to} className="slide__cta" tabIndex={active ? 0 : -1}>{w.cta}</Link>
             </div>
           </div>
         );
       })}
 
       <div className="slider__controls">
-        <button type="button" className="slider__arrow" onClick={() => go(index - 1)} aria-label="Previous slide">
+        <button type="button" className="slider__arrow" onClick={() => go(index - 1)} aria-label={t.slider.prev}>
           <Icon name="prev" />
         </button>
         <div className="slider__dots">
@@ -106,14 +77,14 @@ export function Slider() {
               type="button"
               className={`slider__dot${i === index ? ' is-active' : ''}`}
               onClick={() => go(i)}
-              aria-label={`Show slide ${i + 1}: ${s.title}`}
+              aria-label={t.slider.show(i + 1, words[i].title)}
               aria-current={i === index}
             >
               <span style={{ animationDuration: `${DURATION}ms` }} />
             </button>
           ))}
         </div>
-        <button type="button" className="slider__arrow" onClick={() => go(index + 1)} aria-label="Next slide">
+        <button type="button" className="slider__arrow" onClick={() => go(index + 1)} aria-label={t.slider.next}>
           <Icon name="next" />
         </button>
       </div>

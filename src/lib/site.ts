@@ -10,7 +10,8 @@ export const SITE = {
 };
 
 const sar = new Intl.NumberFormat('en-SA', { maximumFractionDigits: 2 });
-export const formatPrice = (n: number) => `${sar.format(n)} ${SITE.currency}`;
+/** Western digits in both languages, as on Saudi price tags; the riyal sign follows the language. */
+export const formatPrice = (n: number, lang: 'en' | 'ar' = 'en') => `${sar.format(n)} ${lang === 'ar' ? 'ر.س' : SITE.currency}`;
 
 export const whatsappLink = (text: string) =>
   `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(text)}`;

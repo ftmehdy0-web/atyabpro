@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useLang } from '../i18n/lang';
 import { Icon } from './Icon';
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
  */
 export function Sheet({ open, onClose, label, side = 'right', children }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
+  const { t } = useLang();
 
   useEffect(() => {
     const d = ref.current;
@@ -41,7 +43,7 @@ export function Sheet({ open, onClose, label, side = 'right', children }: Props)
       }}
     >
       <div className="sheet__panel">
-        <button type="button" className="sheet__close" onClick={onClose} aria-label="Close">
+        <button type="button" className="sheet__close" onClick={onClose} aria-label={t.close}>
           <Icon name="close" />
         </button>
         {/* Closed sheets render nothing, so the bag and menu cost nothing until opened. */}

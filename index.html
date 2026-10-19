@@ -13,7 +13,14 @@
     <meta property="og:description" content="Oud perfumes, dehn al oud, bakhoor and perfumed body creams. Nineteen pieces, from 30 SAR." />
     <meta property="og:image" content="/images/hero_slide_1-1376.webp" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script>document.documentElement.classList.add('js');</script>
+    <script>
+      document.documentElement.classList.add('js');
+      // Set the saved language before first paint, so an Arabic page never flashes left-to-right.
+      try {
+        var l = new URLSearchParams(location.search).get('lang') || JSON.parse(localStorage.getItem('atyab-lang-v1') || '"en"');
+        if (l === 'ar') { document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl'; }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

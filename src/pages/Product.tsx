@@ -8,7 +8,8 @@ import { WishButton } from '../components/WishButton';
 import { getCategory, getProduct, relatedTo } from '../data/catalog';
 import type { Product } from '../data/types';
 import { imageSource } from '../lib/images';
-import { formatPrice, SITE, whatsappLink } from '../lib/site';
+import { pick, useLang, useProductText } from '../i18n/lang';
+import { SITE, whatsappLink } from '../lib/site';
 import { enterSections, gsap, MOTION, useGSAP } from '../lib/gsap';
 import { useJsonLd, useSeo } from '../lib/useSeo';
 import { useCartActions } from '../state/cart';
@@ -21,11 +22,7 @@ export default function ProductRoute() {
   return product ? <ProductPage key={product.id} p={product} /> : <NotFound />;
 }
 
-const noteRows: { key: keyof Product['notes']; label: string }[] = [
-  { key: 'top', label: 'Opening' },
-  { key: 'heart', label: 'Heart' },
-  { key: 'base', label: 'Drydown' },
-];
+const noteRows: (keyof Product['notes'])[] = ['top', 'heart', 'base'];
 
 function ProductPage({ p }: { p: Product }) {
   const root = useRef<HTMLDivElement>(null);
@@ -36,9 +33,13 @@ function ProductPage({ p }: { p: Product }) {
   const [qty, setQty] = useState(1);
   const { add } = useCartActions();
   const category = getCategory(p.category);
+  const { lang, t, price } = useLang();
+  const text = useProductText(p);
+  const tp = t.product;
+  const catName = pick(lang, category);
   const unit = p.sizes?.find((s) => s.label === size)?.price ?? p.price;
 
-  useSeo(p.name, `${p.name} by Atyab Perfumes: ${p.accord}. ${formatPrice(p.price)}.`, ogImage);
+  useSeo(text.name, t.seo.product(text.name, text.accord, price(p.price)), ogImage);
   useJsonLd({
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -68,18 +69,16 @@ function ProductPage({ p }: { p: Product }) {
     { scope: root },
   );
 
-  const order = whatsappLink(
-    `Hello Atyab, I would like ${qty} x ${p.name}${size ? ` (${size})` : ''} at ${formatPrice(unit)} each. Please confirm delivery and payment.`,
-  );
+  const order = whatsappLink(tp.waMessage(qty, text.name, size ? text.size(size) : '', price(unit)));
 
   return (
     <div className="pdp" ref={root}>
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link to="/shop">Shop</Link>
+      <nav className="crumbs" aria-label={tp.breadcrumb}>
+        <Link to="/shop">{tp.shop}</Link>
         <span aria-hidden="true">/</span>
-        <Link to={`/shop/${category.path}`}>{category.name}</Link>
+        <Link to={`/shop/${category.path}`}>{catName}</Link>
         <span aria-hidden="true">/</span>
-        <span aria-current="page">{p.name}</span>
+        <span aria-current="page">{text.name}</span>
       </nav>
 
       <div className="pdp__grid">
@@ -89,27 +88,27 @@ function ProductPage({ p }: { p: Product }) {
               <Img
                 key={pictures[shown]}
                 name={pictures[shown]}
-                alt={shown === 0 ? `${p.name}, ${p.type}` : `${p.name}, detail ${shown + 1} of ${pictures.length}`}
+                alt={shown === 0 ? `${text.name}, ${text.type}` : tp.detail(text.name, shown + 1, pictures.length)}
                 sizes="(min-width: 64em) 50vw, 100vw"
                 priority
                 style={{ objectPosition: shown === 0 ? p.focus : undefined }}
               />
-            ) : p.standIn ? (
-              <Img name={p.standIn.image} alt={p.standIn.alt} sizes="(min-width: 64em) 50vw, 100vw" priority className="pdp__standin" />
+            ) : text.standIn ? (
+              <Img name={text.standIn.image} alt={text.standIn.alt} sizes="(min-width: 64em) 50vw, 100vw" priority className="pdp__standin" />
             ) : (
-              <ProductImage product={p} alt={`${p.name}: photograph to come`} sizes="50vw" withMark />
+              <ProductImage product={p} alt={tp.toCome(text.name)} sizes="50vw" withMark />
             )}
           </figure>
-          {pictures.length === 0 && p.standIn && <p className="pdp__caption">{p.standIn.caption}</p>}
+          {pictures.length === 0 && text.standIn && <p className="pdp__caption">{text.standIn.caption}</p>}
           {pictures.length > 1 && (
-            <div className="pdp__thumbs" role="group" aria-label="Photographs">
+            <div className="pdp__thumbs" role="group" aria-label={tp.photos}>
               {pictures.map((name, i) => (
                 <button
                   key={name}
                   type="button"
                   className="pdp__thumb"
                   aria-pressed={i === shown}
-                  aria-label={`Photograph ${i + 1} of ${pictures.length}`}
+                  aria-label={tp.photo(i + 1, pictures.length)}
                   onClick={() => setShown(i)}
                 >
                   <Img name={name} alt="" sizes="96px" style={{ objectPosition: i === 0 ? p.focus : undefined }} />
@@ -120,49 +119,49 @@ function ProductPage({ p }: { p: Product }) {
         </div>
 
         <div className="pdp__info">
-          <p className="pdp__ar" lang="ar" dir="rtl">{p.nameAr}</p>
-          <h1 className="pdp__title">{p.name}</h1>
-          <p className="pdp__accord">{p.accord}</p>
-          <p className="pdp__price nums">{formatPrice(unit)}</p>
-          <p className="pdp__type">{p.type}</p>
+          <p className="pdp__ar" lang={lang === 'ar' ? 'en' : 'ar'} dir="auto">{text.otherName}</p>
+          <h1 className="pdp__title">{text.name}</h1>
+          <p className="pdp__accord">{text.accord}</p>
+          <p className="pdp__price nums">{price(unit)}</p>
+          <p className="pdp__type">{text.type}</p>
 
           {p.sizes && (
             <fieldset className="sizes">
-              <legend>Size</legend>
+              <legend>{tp.size}</legend>
               {p.sizes.map((s) => (
                 <label key={s.label} className="sizes__opt">
                   <input type="radio" name="size" value={s.label} checked={size === s.label} onChange={() => setSize(s.label)} />
-                  <span>{s.label}</span>
-                  <span className="nums">{formatPrice(s.price)}</span>
+                  <span>{text.size(s.label)}</span>
+                  <span className="nums">{price(s.price)}</span>
                 </label>
               ))}
             </fieldset>
           )}
 
           <div className="pdp__buy">
-            <QtyStepper value={qty} onChange={setQty} label={p.name} />
+            <QtyStepper value={qty} onChange={setQty} label={text.name} />
             <button type="button" className="button pdp__add" onClick={() => add(p.id, size, qty)}>
-              Add to bag · <span className="nums">{formatPrice(unit * qty)}</span>
+              {tp.addToBag} · <span className="nums">{price(unit * qty)}</span>
             </button>
-            <WishButton id={p.id} name={p.name} className="pdp__wish" />
+            <WishButton id={p.id} name={text.name} className="pdp__wish" />
           </div>
           <a className="button button--quiet button--full" href={order} target="_blank" rel="noopener noreferrer">
-            Order this on WhatsApp
+            {tp.orderWa}
           </a>
-          <p className="note">Delivery and payment are confirmed with you on WhatsApp. No payment is taken on this site.</p>
+          <p className="note">{tp.deliveryNote}</p>
 
-          <p className="pdp__desc">{p.description}</p>
+          <p className="pdp__desc">{text.description}</p>
         </div>
       </div>
 
       <section className="notes" data-section aria-labelledby="notes-title">
-        <h2 id="notes-title" className="h2" data-enter>How it wears</h2>
+        <h2 id="notes-title" className="h2" data-enter>{tp.howItWears}</h2>
         <div className="notes__grid">
-          {noteRows.map((row) => (
-            <div key={row.key} className="notes__col" data-enter>
-              <h3 className="notes__label">{row.label}</h3>
+          {noteRows.map((key) => (
+            <div key={key} className="notes__col" data-enter>
+              <h3 className="notes__label">{tp.notes[key]}</h3>
               <ul>
-                {p.notes[row.key].map((n) => <li key={n}>{n}</li>)}
+                {text.notes[key].map((n) => <li key={n}>{n}</li>)}
               </ul>
             </div>
           ))}
@@ -171,7 +170,7 @@ function ProductPage({ p }: { p: Product }) {
 
       <section className="related" data-section aria-labelledby="related-title">
         <h2 id="related-title" className="h2" data-enter>
-          {p.category === 'gift' ? 'Pieces from the house' : `More ${category.name.toLowerCase()}`}
+          {p.category === 'gift' ? tp.fromHouse : tp.moreOf(catName)}
         </h2>
         <div className="specs specs--four">
           {relatedTo(p).map((r) => (

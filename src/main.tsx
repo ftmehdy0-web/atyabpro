@@ -5,6 +5,10 @@ import '@fontsource/cormorant-garamond/600.css';
 import '@fontsource/cormorant-garamond/500-italic.css';
 import '@fontsource-variable/manrope';
 import '@fontsource/amiri/arabic-400.css';
+import '@fontsource/amiri/arabic-700.css';
+import '@fontsource/tajawal/arabic-400.css';
+import '@fontsource/tajawal/arabic-500.css';
+import '@fontsource/tajawal/arabic-700.css';
 import './styles.css';
 import App from './App';
 

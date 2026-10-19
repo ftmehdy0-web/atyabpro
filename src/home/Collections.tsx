@@ -1,14 +1,16 @@
 import { Link } from 'react-router';
 import { Img } from '../components/Img';
 import { categories, inCategory } from '../data/catalog';
+import { useLang } from '../i18n/lang';
 
 /** The five families, each in an arched frame like the windows in the house photographs. */
 export function Collections() {
+  const { ar, t } = useLang();
   return (
     <section className="collections" data-section aria-labelledby="collections-title">
       <header className="section-head" data-enter>
-        <p className="eyebrow">Shop by family</p>
-        <h2 id="collections-title" className="title">Cherished collections</h2>
+        <p className="eyebrow">{t.collectionsEyebrow}</p>
+        <h2 id="collections-title" className="title">{t.collectionsTitle}</h2>
       </header>
       <ul className="collections__row">
         {categories.map((c) => {
@@ -19,9 +21,9 @@ export function Collections() {
                 <span className="collection__arch">
                   <Img name={c.image} alt="" sizes="(min-width: 64em) 18vw, 40vw" />
                 </span>
-                <span className="collection__ar" lang="ar" dir="rtl">{c.nameAr}</span>
-                <span className="collection__name">{c.name}</span>
-                <span className="collection__count">{n} {n === 1 ? 'piece' : 'pieces'}</span>
+                <span className="collection__ar" lang={ar ? 'en' : 'ar'} dir="auto">{ar ? c.name : c.nameAr}</span>
+                <span className="collection__name">{ar ? c.nameAr : c.name}</span>
+                <span className="collection__count">{t.pieces(n)}</span>
               </Link>
             </li>
           );

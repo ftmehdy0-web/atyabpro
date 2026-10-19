@@ -5,24 +5,31 @@ import { ProductTile } from '../components/ProductTile';
 import { Suggestions } from '../components/Suggestions';
 import { categories, genders, getCategoryByPath, products } from '../data/catalog';
 import type { Gender, Product } from '../data/types';
+import { genderName, localize, pick, useLang, type Lang } from '../i18n/lang';
 import { enterSections, useGSAP } from '../lib/gsap';
 import { useSeo } from '../lib/useSeo';
 import NotFound from './NotFound';
 
 const sorts = {
-  featured: { label: 'House order', fn: null },
-  'price-asc': { label: 'Price, low to high', fn: (a: Product, b: Product) => a.price - b.price },
-  'price-desc': { label: 'Price, high to low', fn: (a: Product, b: Product) => b.price - a.price },
-  name: { label: 'Name, A to Z', fn: (a: Product, b: Product) => a.name.localeCompare(b.name) },
+  featured: null,
+  'price-asc': (a: Product, b: Product) => a.price - b.price,
+  'price-desc': (a: Product, b: Product) => b.price - a.price,
+  name: 'name',
 } as const;
 type SortKey = keyof typeof sorts;
 
 const isSort = (v: string | null): v is SortKey => !!v && v in sorts;
+const byName = (lang: Lang) => (a: Product, b: Product) =>
+  localize(a, lang).name.localeCompare(localize(b, lang).name, lang);
+
 const isGender = (v: string | null): v is Gender => genders.some((g) => g.id === v);
 
+/** Searches both languages, so an Arabic note finds an English page and the other way round. */
 function matches(p: Product, q: string) {
   if (!q) return true;
-  const hay = `${p.name} ${p.nameAr} ${p.accord} ${p.type} ${p.notes.top.join(' ')} ${p.notes.heart.join(' ')} ${p.notes.base.join(' ')}`.toLowerCase();
+  const a = localize(p, 'ar');
+  const notes = (n: Product['notes']) => `${n.top.join(' ')} ${n.heart.join(' ')} ${n.base.join(' ')}`;
+  const hay = `${p.name} ${p.nameAr} ${p.accord} ${p.type} ${notes(p.notes)} ${a.name} ${a.accord} ${a.type} ${notes(a.notes)}`.toLowerCase();
   return q.split(/\s+/).every((word) => hay.includes(word));
 }
 
@@ -30,6 +37,8 @@ export default function Shop() {
   const { category: path } = useParams();
   const [params, setParams] = useSearchParams();
   const root = useRef<HTMLDivElement>(null);
+  const { lang, t } = useLang();
+  const s = t.shop;
   const category = path ? getCategoryByPath(path) : undefined;
 
   const q = params.get('q') ?? '';
@@ -41,14 +50,15 @@ export default function Shop() {
     const out = products.filter(
       (p) => (!category || p.category === category.id) && (!gender || p.gender === gender) && matches(p, deferredQ),
     );
-    const fn = sorts[sort].fn;
-    return fn ? [...out].sort(fn) : out;
-  }, [category, gender, sort, deferredQ]);
+    const fn = sorts[sort];
+    if (!fn) return out;
+    if (fn === 'name') return [...out].sort(byName(lang));
+    return [...out].sort(fn);
+  }, [category, gender, sort, deferredQ, lang]);
 
-  useSeo(
-    category ? category.name : 'Shop all',
-    category ? `${category.name} from Atyab Perfumes. ${category.line}` : 'All nineteen Atyab pieces: perfumes, oils, bakhoor, body creams and gift sets, with prices in SAR.',
-  );
+  const catName = category ? pick(lang, category) : '';
+  const catLine = category ? (lang === 'ar' ? category.lineAr : category.line) : '';
+  useSeo(category ? catName : t.seo.shopAll, category ? t.seo.category(catName, catLine) : t.seo.shopAllDesc);
 
   // Entrances once per page; filtering afterwards should feel instant, not replay.
   useGSAP(() => { enterSections(root.current!); }, { scope: root, dependencies: [path] });
@@ -67,36 +77,36 @@ export default function Shop() {
   return (
     <div className="shop" ref={root}>
       <header className="shop__head" data-section>
-        <h1 className="shop__title" data-enter>{category ? category.name : 'The whole house'}</h1>
+        <h1 className="shop__title" data-enter>{category ? catName : s.allTitle}</h1>
         <p className="shop__line" data-enter>
-          {category ? category.line : 'Every Atyab piece: perfumes, oils, bakhoor, body creams and gift sets, priced in Saudi riyals.'}
+          {category ? catLine : s.allLine}
         </p>
       </header>
 
       <div className="filters" role="search">
-        <nav className="filters__cats" aria-label="Families">
-          <NavLink to={{ pathname: '/shop', search: params.toString() }} end className="chip">All</NavLink>
+        <nav className="filters__cats" aria-label={s.families}>
+          <NavLink to={{ pathname: '/shop', search: params.toString() }} end className="chip">{s.all}</NavLink>
           {categories.map((c) => (
             <NavLink key={c.id} to={{ pathname: `/shop/${c.path}`, search: params.toString() }} className="chip">
-              {c.name}
+              {pick(lang, c)}
             </NavLink>
           ))}
         </nav>
         <div className="filters__row">
           <label className="search">
-            <span className="sr-only">Search by name or note</span>
+            <span className="sr-only">{s.searchLabel}</span>
             <Icon name="search" size={20} />
             <input
               type="search"
               name="q"
               value={q}
               onChange={(e) => update('q', e.target.value)}
-              placeholder="Search a name or a note, like saffron"
+              placeholder={s.placeholder}
               autoComplete="off"
               enterKeyHint="search"
             />
           </label>
-          <div className="filters__for" role="group" aria-label="Who it is for">
+          <div className="filters__for" role="group" aria-label={s.whoFor}>
             {genders.map((g) => (
               <button
                 key={g.id}
@@ -105,26 +115,26 @@ export default function Shop() {
                 aria-pressed={gender === g.id}
                 onClick={() => update('for', gender === g.id ? null : g.id)}
               >
-                {g.name}
+                {genderName(lang, g.id, g.name)}
               </button>
             ))}
           </div>
           <label className="sort">
-            <span>Sort</span>
+            <span>{s.sort}</span>
             <select value={sort} onChange={(e) => update('sort', e.target.value === 'featured' ? null : e.target.value)}>
-              {Object.entries(sorts).map(([k, s]) => (
-                <option key={k} value={k}>{s.label}</option>
+              {(Object.keys(sorts) as SortKey[]).map((k) => (
+                <option key={k} value={k}>{s.sorts[k]}</option>
               ))}
             </select>
           </label>
         </div>
         <p className="filters__count" aria-live="polite">
-          {list.length} {list.length === 1 ? 'piece' : 'pieces'}
+          {t.pieces(list.length)}
           {filtered && (
             <>
               {' · '}
               <button type="button" className="text-button" onClick={() => setParams({}, { replace: true, preventScrollReset: true })}>
-                Clear filters
+                {s.clear}
               </button>
             </>
           )}
@@ -133,22 +143,20 @@ export default function Shop() {
 
       {list.length > 0 && (
         <div className="specs" data-section>
-          <h2 className="sr-only">{category ? category.name : 'All pieces'}</h2>
+          <h2 className="sr-only">{category ? catName : s.allPieces}</h2>
           {list.map((p) => (
             <ProductTile key={p.id} product={p} />
           ))}
         </div>
       )}
-      {list.length > 0 && list.length < 4 && !filtered && <Suggestions title="More from the house" />}
+      {list.length > 0 && list.length < 4 && !filtered && <Suggestions title={s.more} />}
       {list.length === 0 && (
         <div className="empty">
-          <h2 className="h2">Nothing matches that</h2>
+          <h2 className="h2">{s.nothing}</h2>
           <p>
-            Try another note, or{' '}
-            <button type="button" className="text-button" onClick={() => setParams({}, { replace: true })}>clear the filters</button>
-            {' '}to see every piece.
+            {s.tryAnother(<button type="button" className="text-button" onClick={() => setParams({}, { replace: true })}>{s.clearLower}</button>)}
           </p>
-          <Suggestions title="Or start with these" />
+          <Suggestions title={s.orStart} />
         </div>
       )}
     </div>

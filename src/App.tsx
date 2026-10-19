@@ -4,6 +4,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { ScrollTrigger } from './lib/gsap';
+import { LangProvider } from './i18n/lang';
 import Home from './pages/Home';
 import { CartProvider } from './state/cart';
 import { WishlistProvider } from './state/wishlist';
@@ -28,27 +29,29 @@ function RouteChange() {
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <CartProvider>
-        <WishlistProvider>
-          <RouteChange />
-          <Header />
-          <main id="main" tabIndex={-1}>
-            <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/shop/:category" element={<Shop />} />
-                <Route path="/product/:slug" element={<ProductPage />} />
-                <Route path="/bag" element={<Bag />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />
-          <CartDrawer />
-        </WishlistProvider>
-      </CartProvider>
+      <LangProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <RouteChange />
+            <Header />
+            <main id="main" tabIndex={-1}>
+              <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/shop" element={<Shop />} />
+                  <Route path="/shop/:category" element={<Shop />} />
+                  <Route path="/product/:slug" element={<ProductPage />} />
+                  <Route path="/bag" element={<Bag />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </main>
+            <Footer />
+            <CartDrawer />
+          </WishlistProvider>
+        </CartProvider>
+      </LangProvider>
     </BrowserRouter>
   );
 }

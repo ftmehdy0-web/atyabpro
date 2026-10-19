@@ -2,19 +2,16 @@ import { useRef } from 'react';
 import { Link } from 'react-router';
 import { Img } from '../components/Img';
 import { gsap, MOTION, useGSAP } from '../lib/gsap';
+import { useLang } from '../i18n/lang';
 
 interface Props {
   image: string;
-  alt: string;
-  eyebrow: string;
-  title: string;
-  line: string;
   to: string;
-  cta: string;
 }
 
 /** A full-width photograph with the title set over it; the picture drifts slower than the page. */
-export function Banner({ image, alt, eyebrow, title, line, to, cta }: Props) {
+export function Banner({ image, to }: Props) {
+  const { eyebrow, title, line, cta, alt } = useLang().t.banner;
   const root = useRef<HTMLElement>(null);
   useGSAP(() => {
     gsap.matchMedia().add(MOTION.full, () => {

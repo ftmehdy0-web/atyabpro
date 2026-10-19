@@ -1,21 +1,19 @@
+import { localize, type Lang } from '../i18n/lang';
+import { strings } from '../i18n/strings';
 import type { ResolvedLine } from '../state/cart';
 import { formatPrice, mailtoLink, whatsappLink } from './site';
 
 /** The order written out as plain text, for WhatsApp or email. */
-export function orderText(lines: ResolvedLine[], subtotal: number) {
+export function orderText(lines: ResolvedLine[], subtotal: number, lang: Lang = 'en') {
+  const o = strings[lang].order;
   const rows = lines.map((l) => {
-    const size = l.size ? ` (${l.size})` : '';
-    return `- ${l.qty} x ${l.product.name}${size}: ${formatPrice(l.qty * l.unitPrice)}`;
+    const text = localize(l.product, lang);
+    const size = l.size ? ` (${text.size(l.size)})` : '';
+    return `- ${l.qty} × ${text.name}${size}: ${formatPrice(l.qty * l.unitPrice, lang)}`;
   });
-  return [
-    'Hello Atyab, I would like to order:',
-    ...rows,
-    `Subtotal: ${formatPrice(subtotal)}`,
-    '',
-    'Please confirm the total with delivery, and how to pay.',
-  ].join('\n');
+  return [o.intro, ...rows, `${o.subtotal}: ${formatPrice(subtotal, lang)}`, '', o.outro].join('\n');
 }
 
-export const orderWhatsapp = (lines: ResolvedLine[], subtotal: number) => whatsappLink(orderText(lines, subtotal));
-export const orderEmail = (lines: ResolvedLine[], subtotal: number) =>
-  mailtoLink('Order from atyab website', orderText(lines, subtotal));
+export const orderWhatsapp = (lines: ResolvedLine[], subtotal: number, lang: Lang = 'en') => whatsappLink(orderText(lines, subtotal, lang));
+export const orderEmail = (lines: ResolvedLine[], subtotal: number, lang: Lang = 'en') =>
+  mailtoLink(strings[lang].order.subject, orderText(lines, subtotal, lang));

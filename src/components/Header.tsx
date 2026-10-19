@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router';
 import { categories } from '../data/catalog';
+import { pick, useLang } from '../i18n/lang';
 import { SITE, whatsappLink } from '../lib/site';
 import { useCart, useCartActions } from '../state/cart';
 import { useWishlist } from '../state/wishlist';
@@ -8,28 +9,36 @@ import { Icon } from './Icon';
 import { Logo } from './Logo';
 import { Sheet } from './Sheet';
 
-const notices = [
-  `Order on WhatsApp · ${SITE.phoneDisplay}`,
-  'Nineteen pieces of oud, musk and bakhoor',
-  'Prices in Saudi riyals, confirmed before you pay',
-];
-
 /** The black strip above the header: one line at a time, changing every few seconds. */
 function Announce() {
+  const { t } = useLang();
   const [i, setI] = useState(0);
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = window.setInterval(() => setI((n) => (n + 1) % notices.length), 4500);
-    return () => window.clearInterval(t);
-  }, []);
+    const timer = window.setInterval(() => setI((n) => (n + 1) % t.announce.length), 4500);
+    return () => window.clearInterval(timer);
+  }, [t]);
   return (
     <div className="announce">
-      <p key={i} className="announce__line">{notices[i]}</p>
+      <p key={i} className="announce__line">{t.announce[i % t.announce.length]}</p>
     </div>
   );
 }
 
+/** Switches between English and Arabic; the label is always in the language it switches to. */
+export function LangSwitch({ className = '' }: { className?: string }) {
+  const { lang, t, setLang } = useLang();
+  const next = lang === 'ar' ? 'en' : 'ar';
+  return (
+    <button type="button" className={`lang ${className}`} onClick={() => setLang(next)} lang={next} aria-label={t.switchLabel}>
+      <span className="lang__full">{t.switchTo}</span>
+      <span className="lang__short" aria-hidden="true">{next === 'ar' ? 'ع' : 'EN'}</span>
+    </button>
+  );
+}
+
 export function Header() {
+  const { lang, t } = useLang();
   const [menuOpen, setMenuOpen] = useState(false);
   const [q, setQ] = useState('');
   const navigate = useNavigate();
@@ -48,14 +57,15 @@ export function Header() {
     <>
       <Announce />
       <header className="head">
-        <a className="skip" href="#main">Skip to content</a>
+        <a className="skip" href="#main">{t.skip}</a>
         <div className="head__main">
           <div className="head__start">
-            <button type="button" className="head__icon head__menu" onClick={() => setMenuOpen(true)} aria-label="Open menu" aria-expanded={menuOpen}>
+            <button type="button" className="head__icon head__menu" onClick={() => setMenuOpen(true)} aria-label={t.openMenu} aria-expanded={menuOpen}>
               <Icon name="menu" />
             </button>
-            <a className="head__wa" href={whatsappLink('Hello Atyab, I have a question.')} target="_blank" rel="noopener noreferrer">
-              <span className="head__wa-label">WhatsApp</span>
+            <LangSwitch />
+            <a className="head__wa" href={whatsappLink(t.hello)} target="_blank" rel="noopener noreferrer">
+              <span className="head__wa-label">{t.whatsapp}</span>
               <span dir="ltr">{SITE.phoneDisplay}</span>
             </a>
           </div>
@@ -64,48 +74,49 @@ export function Header() {
 
           <div className="head__end">
             <form className="head__search" role="search" onSubmit={search}>
-              <label className="sr-only" htmlFor="head-q">Search products</label>
-              <input id="head-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search products" autoComplete="off" enterKeyHint="search" />
-              <button type="submit" aria-label="Search"><Icon name="search" size={18} /></button>
+              <label className="sr-only" htmlFor="head-q">{t.searchProducts}</label>
+              <input id="head-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.searchProducts} autoComplete="off" enterKeyHint="search" />
+              <button type="submit" aria-label={t.search}><Icon name="search" size={18} /></button>
             </form>
-            <Link to="/shop" className="head__icon head__find" aria-label="Search the shop">
+            <Link to="/shop" className="head__icon head__find" aria-label={t.searchShop}>
               <Icon name="search" />
             </Link>
-            <Link to="/wishlist" className="head__icon" aria-label={`Wishlist, ${ids.length} saved`}>
+            <Link to="/wishlist" className="head__icon" aria-label={t.wishlistCount(ids.length)}>
               <Icon name="heart" />
               {ids.length > 0 && <span className="head__count" aria-hidden="true">{ids.length}</span>}
             </Link>
-            <button type="button" className="head__icon" onClick={openDrawer} aria-label={`Bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
+            <button type="button" className="head__icon" onClick={openDrawer} aria-label={t.bagCount(count)}>
               <Icon name="bag" />
               {count > 0 && <span className="head__count" aria-hidden="true">{count}</span>}
             </button>
           </div>
         </div>
 
-        <nav className="head__nav" aria-label="Collections">
-          <NavLink to="/shop" end className="head__link">Shop all</NavLink>
+        <nav className="head__nav" aria-label={t.collections}>
+          <NavLink to="/shop" end className="head__link">{t.shopAll}</NavLink>
           {categories.map((c) => (
             <NavLink key={c.id} to={`/shop/${c.path}`} className="head__link">
-              {c.name}
+              {pick(lang, c)}
             </NavLink>
           ))}
         </nav>
       </header>
 
-      <Sheet open={menuOpen} onClose={close} label="Menu" side="full">
-        <nav className="menu" aria-label="Menu">
-          <Link to="/shop" className="menu__link" onClick={close}>Shop all</Link>
+      <Sheet open={menuOpen} onClose={close} label={t.menu} side="full">
+        <nav className="menu" aria-label={t.menu}>
+          <Link to="/shop" className="menu__link" onClick={close}>{t.shopAll}</Link>
           {categories.map((c) => (
             <Link key={c.id} to={`/shop/${c.path}`} className="menu__link" onClick={close}>
-              {c.name}
-              <span className="menu__ar" lang="ar" dir="rtl">{c.nameAr}</span>
+              {pick(lang, c)}
+              <span className="menu__ar" lang={lang === 'ar' ? 'en' : 'ar'} dir="auto">{lang === 'ar' ? c.name : c.nameAr}</span>
             </Link>
           ))}
-          <Link to="/wishlist" className="menu__link menu__link--small" onClick={close}>Wishlist ({ids.length})</Link>
-          <Link to="/bag" className="menu__link menu__link--small" onClick={close}>Bag ({count})</Link>
-          <a className="menu__link menu__link--small" href={whatsappLink('Hello Atyab, I have a question.')} target="_blank" rel="noopener noreferrer">
-            WhatsApp <span dir="ltr">{SITE.phoneDisplay}</span>
+          <Link to="/wishlist" className="menu__link menu__link--small" onClick={close}>{t.wishlist} ({ids.length})</Link>
+          <Link to="/bag" className="menu__link menu__link--small" onClick={close}>{t.bag} ({count})</Link>
+          <a className="menu__link menu__link--small" href={whatsappLink(t.hello)} target="_blank" rel="noopener noreferrer">
+            {t.whatsapp} <span dir="ltr">{SITE.phoneDisplay}</span>
           </a>
+          <LangSwitch className="menu__lang" />
         </nav>
       </Sheet>
     </>

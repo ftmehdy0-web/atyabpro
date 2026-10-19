@@ -50,7 +50,8 @@
 
 /* ---------- reset ---------- */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* The scrollbar's space is always reserved, so locking scroll under a sheet never shifts the page sideways. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scrollbar-gutter: stable; }
 html.is-locked { overflow: hidden; }
 body {
   margin: 0;
@@ -66,7 +67,8 @@ body {
 h1, h2, h3, p, figure, ul, ol, dl, dd, fieldset { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 fieldset { padding: 0; border: 0; min-width: 0; }
-img { display: block; max-width: 100%; height: auto; }
+img { display: block; max-width: 100%; height: auto; transition: opacity 600ms ease; }
+img[data-pending] { opacity: 0 !important; }
 button, input, select { font: inherit; color: inherit; }
 button { background: none; border: 0; padding: 0; cursor: pointer; }
 a, button, input, select, label { touch-action: manipulation; -webkit-tap-highlight-color: rgb(184 144 79 / 0.25); }
@@ -82,6 +84,9 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 .nums { font-variant-numeric: tabular-nums lining-nums; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .page-loading { min-height: 70vh; }
+/* backwards fill only: no transform is left on the page afterwards, so sticky parts keep working */
+@media (prefers-reduced-motion: no-preference) { .page { animation: page-in 600ms var(--ease-out) backwards; } }
+@keyframes page-in { from { opacity: 0; transform: translateY(12px); } }
 
 /* ---------- type ---------- */
 .eyebrow { font-size: var(--t-tag); font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-deep); max-width: none; }
@@ -167,7 +172,10 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 
 .skip { position: fixed; inset-inline-start: var(--margin); top: 0.5rem; z-index: 50; background: var(--ink); color: var(--paper); padding: 0.75rem 1rem; transform: translateY(-300%); }
 .skip:focus { transform: none; }
-.head { position: sticky; top: 0; z-index: 20; background: rgb(253 251 247 / 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.head { position: sticky; top: 0; z-index: 20; background: rgb(253 251 247 / 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); transition: transform 480ms var(--ease-expo), box-shadow 300ms ease; }
+.head.is-hidden { transform: translateY(-100%); }
+.head.is-hidden:focus-within { transform: none; }
+.head.is-scrolled { box-shadow: 0 10px 30px -18px rgb(21 18 15 / 0.25); } /* taste-skill-ignore: separates the sticky header from the page once scrolled */
 .head__main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem; max-width: var(--max); margin-inline: auto; padding: 0.9rem var(--margin) 0.5rem; }
 .head__start { display: flex; align-items: center; gap: 1.25rem; }
 .head__end { display: flex; align-items: center; justify-content: flex-end; gap: 0.25rem; }
@@ -181,6 +189,8 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 .head__search button { width: 2.75rem; height: 2.75rem; display: grid; place-items: center; color: var(--ink-soft); }
 .head__icon { position: relative; display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; transition: color var(--t-hover) ease, transform var(--t-press) var(--ease-out); }
 .head__icon:active { transform: scale(0.92); }
+@media (prefers-reduced-motion: no-preference) { .head__count { animation: pop 420ms var(--ease-out); } }
+@keyframes pop { 0% { transform: scale(0.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .head__count { position: absolute; top: 0.25rem; inset-inline-end: 0.15rem; min-width: 1.15rem; height: 1.15rem; padding: 0 0.25rem; display: grid; place-items: center; background: var(--gold); color: var(--charcoal); font-size: 0.6875rem; font-weight: 700; line-height: 1; border-radius: 1rem; font-variant-numeric: tabular-nums; }
 .head__menu, .head__find { display: none; }
 
@@ -217,7 +227,7 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 .sheet::backdrop { background: rgb(21 18 15 / 0.55); }
 .sheet--right { margin: 0; margin-inline-start: auto; width: min(28rem, 100vw); height: 100dvh; }
 .sheet--full { margin: 0; width: 100vw; height: 100dvh; }
-.sheet__panel { position: relative; height: 100%; overflow-y: auto; overscroll-behavior: contain; background: var(--paper); box-shadow: -24px 0 48px rgb(21 18 15 / 0.18); } /* taste-skill-ignore: modal dialog floats over the page */
+.sheet__panel { position: relative; height: 100%; will-change: transform; overflow-y: auto; overscroll-behavior: contain; background: var(--paper); box-shadow: -24px 0 48px rgb(21 18 15 / 0.18); } /* taste-skill-ignore: modal dialog floats over the page */
 .sheet--full .sheet__panel { background: var(--charcoal); color: var(--on-dark); box-shadow: none; } /* taste-skill-ignore: removes the dialog shadow */
 .sheet__close { position: absolute; top: 0.9rem; inset-inline-end: var(--margin); z-index: 2; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; transition: transform var(--t-press) var(--ease-out); }
 .sheet__close:active { transform: scale(0.92); }
@@ -231,10 +241,21 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
   .sheet--full[open] .menu__link:nth-child(4) { animation-delay: 150ms; }
   .sheet--full[open] .menu__link:nth-child(n + 5) { animation-delay: 200ms; }
 }
+@media (prefers-reduced-motion: no-preference) {
+  .sheet--right[data-closing] .sheet__panel { animation: sheet-out 320ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+  .sheet--full[data-closing] .sheet__panel { animation: sheet-up 300ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+  .sheet[data-closing]::backdrop { animation: fade-out 320ms ease forwards; }
+  /* bag lines arrive one after another once the panel is mostly in */
+  .sheet--right[open]:not([data-closing]) .bagline { animation: rise-in 560ms var(--ease-expo) both; animation-delay: calc(140ms + var(--i, 0) * 55ms); }
+  .sheet--right[open]:not([data-closing]) .drawer__added { animation: rise-in 500ms var(--ease-expo) 80ms both; }
+}
 @media (prefers-reduced-motion: reduce) { .sheet[open] .sheet__panel { animation: fade-in 200ms ease; } }
 @keyframes sheet-in { from { transform: translateX(100%); } }
 @keyframes sheet-down { from { transform: translateY(-4%); opacity: 0; } }
 @keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes sheet-out { to { transform: translateX(100%); } }
+@keyframes sheet-up { to { transform: translateY(-3%); opacity: 0; } }
 @keyframes rise-in { from { transform: translateY(16px); opacity: 0; } }
 
 .menu { display: flex; flex-direction: column; padding: 5.5rem var(--margin) 2rem; }
@@ -246,6 +267,8 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 .drawer { display: flex; flex-direction: column; min-height: 100%; padding: 1.4rem var(--margin) var(--margin); }
 .drawer__title { font-family: var(--font-display); font-size: 1.75rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2; padding-inline-end: 3rem; }
 .drawer__count { font-family: var(--font-text); font-size: var(--t-body); color: var(--ink-soft); letter-spacing: 0; }
+.drawer__added { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--paper-2); border-inline-start: 2px solid var(--gold); font-size: var(--t-small); font-weight: 600; max-width: none; }
+.drawer__added svg { flex: none; color: var(--gold-deep); }
 .drawer__empty { margin-top: 2rem; display: grid; gap: 1.25rem; justify-items: start; }
 .drawer .baglines { flex: 1; margin-top: 1.5rem; }
 .drawer__foot { display: grid; gap: 0.75rem; padding-top: 1.25rem; margin-top: 1rem; background: var(--paper); border-top: 1px solid var(--line); position: sticky; bottom: 0; padding-bottom: 0.25rem; }
@@ -253,6 +276,7 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 /* ---------- bag lines (drawer and bag page) ---------- */
 .baglines { display: grid; align-content: start; border-top: 1px solid var(--line); }
 .bagline { display: grid; grid-template-columns: 6rem 1fr; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.bagline.is-new .bagline__pic { outline: 2px solid var(--gold); outline-offset: 2px; }
 .bagline__pic img, .bagline__pic .noimage { width: 6rem; height: 6rem; object-fit: cover; background: var(--paper-2); }
 .bagline__body { display: grid; gap: 0.2rem; align-content: start; min-width: 0; }
 .bagline__top { display: flex; justify-content: space-between; gap: 0.75rem; align-items: baseline; }
@@ -313,7 +337,7 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 .collections__row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--gutter); }
 .collection { display: grid; justify-items: center; text-align: center; gap: 0.2rem; }
 .collection__arch { display: block; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 999px 999px 0 0; background: var(--paper-2); margin-bottom: 1rem; outline: 1px solid var(--line); outline-offset: 6px; transition: outline-color var(--t-ui) ease; }
-.collection__arch img { width: 100%; height: 100%; object-fit: cover; transition: transform 900ms var(--ease-out); }
+.collection__arch img { width: 100%; height: 100%; object-fit: cover; transition: transform 900ms var(--ease-out), opacity 600ms ease; }
 .collection__ar { font-size: 1.125rem; color: var(--gold-deep); line-height: 1.4; }
 .collection__name { font-size: var(--t-small); font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
 .collection__count { font-size: var(--t-small); color: var(--ink-soft); }
@@ -613,7 +637,11 @@ h1, h2, h3 { font-weight: 500; text-wrap: balance; }
 @media (prefers-reduced-motion: no-preference) {
   [dir='rtl'] .sheet--right[open] .sheet__panel { animation-name: sheet-in-rtl; }
 }
+@media (prefers-reduced-motion: no-preference) {
+  [dir='rtl'] .sheet--right[data-closing] .sheet__panel { animation-name: sheet-out-rtl; }
+}
 @keyframes sheet-in-rtl { from { transform: translateX(-100%); } }
+@keyframes sheet-out-rtl { to { transform: translateX(-100%); } }
 
 /* ---------- motion: hidden states only exist when motion is allowed ---------- */
 @media (prefers-reduced-motion: reduce) {

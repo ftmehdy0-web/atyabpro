@@ -9,6 +9,7 @@ const paths = {
   arrow: 'M4 12h15m-6-6 6 6-6 6',
   prev: 'M15 5l-7 7 7 7',
   next: 'M9 5l7 7-7 7',
+  check: 'M5 12.5l4.5 4.5L19 7.5',
 } as const;
 
 export type IconName = keyof typeof paths;

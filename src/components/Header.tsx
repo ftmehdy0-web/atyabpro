@@ -37,6 +37,35 @@ export function LangSwitch({ className = '' }: { className?: string }) {
   );
 }
 
+/**
+ * Hides the header while the visitor scrolls down past the slider and brings it
+ * back as soon as they scroll up. Never hides while a sheet has the page locked.
+ */
+function useHeaderScroll() {
+  const [state, setState] = useState({ hidden: false, scrolled: false });
+  useEffect(() => {
+    let last = window.scrollY;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      if (document.documentElement.classList.contains('is-locked')) return;
+      const delta = y - last;
+      if (Math.abs(delta) < 6) return;
+      last = y;
+      const hidden = delta > 0 && y > 480;
+      setState((s) => (s.hidden === hidden && s.scrolled === y > 8 ? s : { hidden, scrolled: y > 8 }));
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+  return state;
+}
+
 export function Header() {
   const { lang, t } = useLang();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -46,6 +75,7 @@ export function Header() {
   const { openDrawer } = useCartActions();
   const { ids } = useWishlist();
   const close = () => setMenuOpen(false);
+  const scroll = useHeaderScroll();
 
   function search(e: FormEvent) {
     e.preventDefault();
@@ -56,7 +86,7 @@ export function Header() {
   return (
     <>
       <Announce />
-      <header className="head">
+      <header className={`head${scroll.hidden ? ' is-hidden' : ''}${scroll.scrolled ? ' is-scrolled' : ''}`}>
         <a className="skip" href="#main">{t.skip}</a>
         <div className="head__main">
           <div className="head__start">
@@ -83,11 +113,11 @@ export function Header() {
             </Link>
             <Link to="/wishlist" className="head__icon" aria-label={t.wishlistCount(ids.length)}>
               <Icon name="heart" />
-              {ids.length > 0 && <span className="head__count" aria-hidden="true">{ids.length}</span>}
+              {ids.length > 0 && <span key={ids.length} className="head__count" aria-hidden="true">{ids.length}</span>}
             </Link>
             <button type="button" className="head__icon" onClick={openDrawer} aria-label={t.bagCount(count)}>
               <Icon name="bag" />
-              {count > 0 && <span className="head__count" aria-hidden="true">{count}</span>}
+              {count > 0 && <span key={count} className="head__count" aria-hidden="true">{count}</span>}
             </button>
           </div>
         </div>

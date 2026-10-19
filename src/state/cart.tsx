@@ -62,6 +62,8 @@ interface CartState {
   count: number;
   subtotal: number;
   drawerOpen: boolean;
+  /** Key of the line just added, for the drawer's confirmation; cleared when the drawer closes. */
+  lastAdded: string | null;
 }
 
 const StateCtx = createContext<CartState | null>(null);
@@ -82,6 +84,7 @@ function resolve(lines: CartLine[]): ResolvedLine[] {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, dispatch] = useReducer(reducer, undefined, () => readStored(KEY, isLines, []));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [lastAdded, setLastAdded] = useState<string | null>(null);
 
   useEffect(() => writeStored(KEY, lines), [lines]);
 
@@ -89,13 +92,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => ({
       add: (id, size = '', qty = 1) => {
         dispatch({ type: 'add', id, size, qty });
+        setLastAdded(`${id}|${size}`);
         setDrawerOpen(true);
       },
       setQty: (id, size, qty) => dispatch({ type: 'set', id, size, qty }),
       remove: (id, size) => dispatch({ type: 'remove', id, size }),
       clear: () => dispatch({ type: 'clear' }),
       openDrawer: () => setDrawerOpen(true),
-      closeDrawer: () => setDrawerOpen(false),
+      closeDrawer: () => {
+        setDrawerOpen(false);
+        setLastAdded(null);
+      },
     }),
     [],
   );
@@ -108,8 +115,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       count += l.qty;
       subtotal += l.qty * l.unitPrice;
     }
-    return { lines: resolved, count, subtotal, drawerOpen };
-  }, [lines, drawerOpen]);
+    return { lines: resolved, count, subtotal, drawerOpen, lastAdded };
+  }, [lines, drawerOpen, lastAdded]);
 
   return (
     <ActionsCtx.Provider value={actions}>

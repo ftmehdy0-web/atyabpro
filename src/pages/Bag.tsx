@@ -47,7 +47,7 @@ export default function Bag() {
             <p className="note">
               {b.payNote}
             </p>
-            <a className="button button--full" href={orderWhatsapp(lines, subtotal, lang)} target="_blank" rel="noopener noreferrer">
+            <a className="button button--gold button--full" href={orderWhatsapp(lines, subtotal, lang)} target="_blank" rel="noopener noreferrer">
               {b.sendWa}
             </a>
             <a className="button button--quiet button--full" href={orderEmail(lines, subtotal, lang)}>

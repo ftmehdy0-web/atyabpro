@@ -190,6 +190,7 @@ const en = {
     quantity: (name: string) => `Quantity, ${name}`,
     fewer: 'One fewer',
     more: 'One more',
+    added: (name: string) => `${name} added to your bag`,
   },
 
   order: {
@@ -412,6 +413,7 @@ const ar: Strings = {
     quantity: (name) => `الكمية، ${name}`,
     fewer: 'أنقص واحدة',
     more: 'أضف واحدة',
+    added: (name) => `أُضيف ${name} إلى سلتك`,
   },
 
   order: {

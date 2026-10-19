@@ -134,8 +134,8 @@ export default function Shop() {
       {list.length > 0 && (
         <div className="specs" data-section>
           <h2 className="sr-only">{category ? category.name : 'All pieces'}</h2>
-          {list.map((p, i) => (
-            <ProductTile key={p.id} product={p} tone={i % 4} large={(i % 7 === 0 && list.length > 4) || list.length === 1} />
+          {list.map((p) => (
+            <ProductTile key={p.id} product={p} />
           ))}
         </div>
       )}

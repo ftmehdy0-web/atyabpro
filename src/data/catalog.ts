@@ -10,14 +10,16 @@ export interface CategoryInfo {
   name: string;
   nameAr: string;
   line: string;
+  /** Key into src/data/images.json for the collection tile. */
+  image: string;
 }
 
 export const categories: CategoryInfo[] = [
-  { id: 'perfume', path: 'perfumes', name: 'Perfumes', nameAr: 'عطور', line: 'Eau de parfum, from oud and saffron to sea air and white flowers.' },
-  { id: 'oil', path: 'oils', name: 'Perfume oils', nameAr: 'دهن', line: 'Dehn al oud and white musk, sold by the tola.' },
-  { id: 'bakhoor', path: 'bakhoor', name: 'Bakhoor', nameAr: 'بخور', line: 'Agarwood chips and dakhoon for the home and the cloth.' },
-  { id: 'cream', path: 'body-creams', name: 'Body creams', nameAr: 'كريمات', line: 'Perfumed creams that hold a scent on the skin.' },
-  { id: 'gift', path: 'gift-sets', name: 'Gift sets', nameAr: 'هدايا', line: 'A boxed set of perfume, oil and incense.' },
+  { id: 'perfume', path: 'perfumes', name: 'Perfumes', nameAr: 'عطور', line: 'Eau de parfum, from oud and saffron to sea air and white flowers.', image: 'kaaf' },
+  { id: 'oil', path: 'oils', name: 'Perfume oils', nameAr: 'دهن', line: 'Dehn al oud and white musk, sold by the tola.', image: 'oil_dehn_oud' },
+  { id: 'bakhoor', path: 'bakhoor', name: 'Bakhoor', nameAr: 'بخور', line: 'Agarwood chips and dakhoon for the home and the cloth.', image: 'dakhoon' },
+  { id: 'cream', path: 'body-creams', name: 'Body creams', nameAr: 'كريمات', line: 'Perfumed creams that hold a scent on the skin.', image: 'cream_marj_gold' },
+  { id: 'gift', path: 'gift-sets', name: 'Gift sets', nameAr: 'هدايا', line: 'A boxed set of perfume, oil and incense.', image: 'gift_set' },
 ];
 
 export const genders: { id: Gender; name: string }[] = [

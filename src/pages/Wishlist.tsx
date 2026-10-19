@@ -20,8 +20,8 @@ export default function Wishlist() {
       ) : (
         <div className="specs specs--four">
           <h2 className="sr-only">Saved pieces</h2>
-          {saved.map((p, i) => (
-            <ProductTile key={p.id} product={p} tone={i % 4} />
+          {saved.map((p) => (
+            <ProductTile key={p.id} product={p} />
           ))}
         </div>
       )}

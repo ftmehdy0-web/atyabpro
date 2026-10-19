@@ -20,8 +20,8 @@ export function Suggestions({ title = 'Start with these' }: { title?: string }) 
         <Link to="/shop" className="text-button">See all nineteen</Link>
       </div>
       <div className="specs specs--four">
-        {picks.map((p, i) => (
-          <ProductTile key={p.id} product={p} tone={i % 4} />
+        {picks.map((p) => (
+          <ProductTile key={p.id} product={p} />
         ))}
       </div>
     </section>

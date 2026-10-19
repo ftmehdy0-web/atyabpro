@@ -158,8 +158,8 @@ function ProductPage({ p }: { p: Product }) {
       <section className="notes" data-section aria-labelledby="notes-title">
         <h2 id="notes-title" className="h2" data-enter>How it wears</h2>
         <div className="notes__grid">
-          {noteRows.map((row, i) => (
-            <div key={row.key} className={`notes__col tone-${i}`} data-enter>
+          {noteRows.map((row) => (
+            <div key={row.key} className="notes__col" data-enter>
               <h3 className="notes__label">{row.label}</h3>
               <ul>
                 {p.notes[row.key].map((n) => <li key={n}>{n}</li>)}
@@ -174,8 +174,8 @@ function ProductPage({ p }: { p: Product }) {
           {p.category === 'gift' ? 'Pieces from the house' : `More ${category.name.toLowerCase()}`}
         </h2>
         <div className="specs specs--four">
-          {relatedTo(p).map((r, i) => (
-            <ProductTile key={r.id} product={r} tone={(i + 1) % 4} />
+          {relatedTo(p).map((r) => (
+            <ProductTile key={r.id} product={r} />
           ))}
         </div>
       </section>

@@ -14,12 +14,14 @@ const pages = {
   product: () => import('./pages/Product'),
   bag: () => import('./pages/Bag'),
   wishlist: () => import('./pages/Wishlist'),
+  account: () => import('./pages/Account'),
   missing: () => import('./pages/NotFound'),
 };
 const Shop = lazy(pages.shop);
 const ProductPage = lazy(pages.product);
 const Bag = lazy(pages.bag);
 const Wishlist = lazy(pages.wishlist);
+const Account = lazy(pages.account);
 const NotFound = lazy(pages.missing);
 
 /** Fetches the other pages while the browser is idle, so the first click never shows a blank loading state. */
@@ -72,6 +74,7 @@ export default function App() {
                     <Route path="/product/:slug" element={<ProductPage />} />
                     <Route path="/bag" element={<Bag />} />
                     <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/account" element={<Account />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Page>

@@ -93,7 +93,11 @@ export function Header() {
             <button type="button" className="head__icon head__menu" onClick={() => setMenuOpen(true)} aria-label={t.openMenu} aria-expanded={menuOpen}>
               <Icon name="menu" />
             </button>
-            <LangSwitch />
+            {/* Phones only: search sits beside the menu so the account icon fits on the right. */}
+            <Link to="/shop" className="head__icon head__find" aria-label={t.searchShop}>
+              <Icon name="search" />
+            </Link>
+            <LangSwitch className="head__lang" />
             <a className="head__wa" href={whatsappLink(t.hello)} target="_blank" rel="noopener noreferrer">
               <span className="head__wa-label">{t.whatsapp}</span>
               <span dir="ltr">{SITE.phoneDisplay}</span>
@@ -108,9 +112,9 @@ export function Header() {
               <input id="head-q" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t.searchProducts} autoComplete="off" enterKeyHint="search" />
               <button type="submit" aria-label={t.search}><Icon name="search" size={18} /></button>
             </form>
-            <Link to="/shop" className="head__icon head__find" aria-label={t.searchShop}>
-              <Icon name="search" />
-            </Link>
+            <NavLink to="/account" className="head__icon head__account" aria-label={t.accountLabel}>
+              <Icon name="user" />
+            </NavLink>
             <Link to="/wishlist" className="head__icon" aria-label={t.wishlistCount(ids.length)}>
               <Icon name="heart" />
               {ids.length > 0 && <span key={ids.length} className="head__count" aria-hidden="true">{ids.length}</span>}
@@ -143,6 +147,7 @@ export function Header() {
           ))}
           <Link to="/wishlist" className="menu__link menu__link--small" onClick={close}>{t.wishlist} ({ids.length})</Link>
           <Link to="/bag" className="menu__link menu__link--small" onClick={close}>{t.bag} ({count})</Link>
+          <Link to="/account" className="menu__link menu__link--small" onClick={close}>{t.accountLabel}</Link>
           <a className="menu__link menu__link--small" href={whatsappLink(t.hello)} target="_blank" rel="noopener noreferrer">
             {t.whatsapp} <span dir="ltr">{SITE.phoneDisplay}</span>
           </a>

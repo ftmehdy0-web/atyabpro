@@ -35,6 +35,7 @@ export function Footer() {
           <h3 className="foot__head">{t.footer.yourOrder}</h3>
           <Link to="/bag">{t.bag}</Link>
           <Link to="/wishlist">{t.wishlist}</Link>
+          <Link to="/account">{t.accountLabel}</Link>
           <a href={whatsappLink(t.helloOrder)} target="_blank" rel="noopener noreferrer">{t.footer.orderOnWa}</a>
         </nav>
         <div className="foot__col" data-enter>

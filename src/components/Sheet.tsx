@@ -15,8 +15,9 @@ const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)'
 /**
  * A modal panel on the native <dialog>: focus is trapped, Escape closes it,
  * and the page behind is inert. Clicking the backdrop closes it too.
- * Closing plays an exit animation first ([data-closing]); the dialog only
- * really closes, and its contents unmount, once that animation has finished.
+ * The panel moves with CSS transitions driven by data-state: "enter" holds it
+ * at its starting pose, "open" brings it in, "closing" takes it out. The dialog
+ * only really closes, and its contents unmount, once the exit has finished.
  */
 export function Sheet({ open, onClose, label, side = 'right', children }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -30,15 +31,27 @@ export function Sheet({ open, onClose, label, side = 'right', children }: Props)
 
     if (open) {
       setMounted(true);
-      d.removeAttribute('data-closing');
-      if (!d.open) d.showModal();
+      if (!d.open) {
+        d.dataset.state = 'enter';
+        d.showModal();
+      }
       root.classList.add('is-locked');
-      return;
+      // showModal() makes the whole page inert, so the frame it lands in is slow.
+      // Paint that frame at the starting pose and move on the next one; a motion
+      // timed from the slow frame would already be part-way in when first seen.
+      let next = 0;
+      const first = requestAnimationFrame(() => {
+        next = requestAnimationFrame(() => { d.dataset.state = 'open'; });
+      });
+      return () => {
+        cancelAnimationFrame(first);
+        cancelAnimationFrame(next);
+      };
     }
     if (!d.open) return;
 
     const finish = () => {
-      d.removeAttribute('data-closing');
+      delete d.dataset.state;
       if (d.open) d.close();
       root.classList.remove('is-locked');
       setMounted(false);
@@ -47,15 +60,15 @@ export function Sheet({ open, onClose, label, side = 'right', children }: Props)
       finish();
       return;
     }
-    d.setAttribute('data-closing', '');
-    const panel = d.querySelector('.sheet__panel');
-    // Children animate too and their events bubble, so only the panel's own end counts.
-    const onEnd = (e: Event) => { if (e.target === panel) finish(); };
+    d.dataset.state = 'closing';
+    const panel = d.querySelector<HTMLElement>('.sheet__panel');
+    // Children transition too and their events bubble, so only the panel's own end counts.
+    const onEnd = (e: TransitionEvent) => { if (e.target === panel && e.propertyName === 'transform') finish(); };
     const fallback = window.setTimeout(finish, 450);
-    panel?.addEventListener('animationend', onEnd);
+    panel?.addEventListener('transitionend', onEnd);
     return () => {
       window.clearTimeout(fallback);
-      panel?.removeEventListener('animationend', onEnd);
+      panel?.removeEventListener('transitionend', onEnd);
     };
   }, [open]);
 

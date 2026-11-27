@@ -111,6 +111,9 @@ export function Header() {
             <Link to="/shop" className="head__icon head__find" aria-label={t.searchShop}>
               <Icon name="search" />
             </Link>
+            <Link to="/login" className="head__icon" aria-label={t.login.account}>
+              <Icon name="user" />
+            </Link>
             <Link to="/wishlist" className="head__icon" aria-label={t.wishlistCount(ids.length)}>
               <Icon name="heart" />
               {ids.length > 0 && <span key={ids.length} className="head__count" aria-hidden="true">{ids.length}</span>}

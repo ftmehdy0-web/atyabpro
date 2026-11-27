@@ -6,6 +6,7 @@ import { Header } from './components/Header';
 import { ScrollTrigger } from './lib/gsap';
 import { LangProvider } from './i18n/lang';
 import Home from './pages/Home';
+import { AuthProvider } from './state/auth';
 import { CartProvider } from './state/cart';
 import { WishlistProvider } from './state/wishlist';
 
@@ -14,12 +15,14 @@ const pages = {
   product: () => import('./pages/Product'),
   bag: () => import('./pages/Bag'),
   wishlist: () => import('./pages/Wishlist'),
+  login: () => import('./pages/Login'),
   missing: () => import('./pages/NotFound'),
 };
 const Shop = lazy(pages.shop);
 const ProductPage = lazy(pages.product);
 const Bag = lazy(pages.bag);
 const Wishlist = lazy(pages.wishlist);
+const Login = lazy(pages.login);
 const NotFound = lazy(pages.missing);
 
 /** Fetches the other pages while the browser is idle, so the first click never shows a blank loading state. */
@@ -58,29 +61,32 @@ export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <LangProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <RouteChange />
-            <Header />
-            <main id="main" tabIndex={-1}>
-              <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
-                <Page>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/shop" element={<Shop />} />
-                    <Route path="/shop/:category" element={<Shop />} />
-                    <Route path="/product/:slug" element={<ProductPage />} />
-                    <Route path="/bag" element={<Bag />} />
-                    <Route path="/wishlist" element={<Wishlist />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Page>
-              </Suspense>
-            </main>
-            <Footer />
-            <CartDrawer />
-          </WishlistProvider>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <RouteChange />
+              <Header />
+              <main id="main" tabIndex={-1}>
+                <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
+                  <Page>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/shop" element={<Shop />} />
+                      <Route path="/shop/:category" element={<Shop />} />
+                      <Route path="/product/:slug" element={<ProductPage />} />
+                      <Route path="/bag" element={<Bag />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Page>
+                </Suspense>
+              </main>
+              <Footer />
+              <CartDrawer />
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
       </LangProvider>
     </BrowserRouter>
   );
